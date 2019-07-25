@@ -14,6 +14,8 @@ open module ghost2.main {
     requires org.apache.commons.io;
     requires discord4j.core;
     requires discord4j.rest;
+    requires discord4j.voice;
+    requires lavaplayer;
     requires reactor.core;
     requires org.reactivestreams;
     requires tinylog;

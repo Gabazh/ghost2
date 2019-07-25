@@ -3,6 +3,7 @@ package com.github.coleb1911.ghost2;
 import com.github.coleb1911.ghost2.commands.CommandDispatcher;
 import com.github.coleb1911.ghost2.database.entities.GuildMeta;
 import com.github.coleb1911.ghost2.database.repos.GuildMetaRepository;
+import com.github.coleb1911.ghost2.music.GuildAudioProviders;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
@@ -138,11 +139,17 @@ public class Ghost2Application implements ApplicationRunner {
      * @param status Status code
      */
     public void exit(int status) {
-        // Log out bot
-        client.logout().block();
-
         // Release application lock
         this.unlock();
+
+        // Shut down music service
+        GuildAudioProviders.shutdown();
+
+        // Shut down command dispatcher
+        dispatcher.shutdown();
+
+        // Log out bot
+        client.logout().block();
 
         // Close Spring application context
         SpringApplication.exit(ctx, () -> status);

@@ -1,5 +1,6 @@
 package com.github.coleb1911.ghost2.commands.meta;
 
+import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import org.apache.commons.lang3.StringUtils;
 
@@ -136,7 +137,7 @@ public final class ModuleInfo {
         /**
          * Sets the command name to the given value.
          *
-         * @param name Command name. Must be not-null and contain at least one non-whitespace character.
+         * @param name Command name. <b>Cannot be null or blank.</b>
          * @return this Builder
          */
         public Builder withName(@NotBlank String name) {
@@ -147,7 +148,7 @@ public final class ModuleInfo {
         /**
          * Sets the command description to the given value.
          *
-         * @param description Command description. Must be not-null and contain at least one non-whitespace character.
+         * @param description Command description. <b>Cannot be null or blank.</b>
          * @return this Builder
          */
         public Builder withDescription(@NotBlank String description) {
@@ -156,36 +157,36 @@ public final class ModuleInfo {
         }
 
         /**
-         * Sets the required bot permissions to the given PermissionSet.
+         * Sets the required bot permissions to the given permissions.
          *
-         * @param botPermissions Required bot permissions
+         * @param botPermissions Required bot permissions. <b>Cannot be null.</b>
          * @return this Builder
          */
-        public Builder withBotPermissions(@NotNull PermissionSet botPermissions) {
-            this.botPermissions = botPermissions;
+        public Builder withBotPermissions(@NotNull Permission... botPermissions) {
+            this.botPermissions = PermissionSet.of(botPermissions);
             return this;
         }
 
         /**
-         * Sets the required user permissions to the given PermissionSet.
+         * Sets the required user permissions to the given permissions.
          *
          * @param userPermissions Required user permissions. <b>Cannot be null.</b>
          * @return this Builder
          */
-        public Builder withUserPermissions(@NotNull PermissionSet userPermissions) {
-            this.userPermissions = userPermissions;
+        public Builder withUserPermissions(@NotNull Permission... userPermissions) {
+            this.userPermissions = PermissionSet.of(userPermissions);
             return this;
         }
 
         /**
-         * Sets the required user and bot permissions to the given PermissionSet.
+         * Sets the required user and bot permissions to the given permissions.
          *
          * @param permissions Required permissions. <b>Cannot be null.</b>
          * @return this Builder
          */
-        public Builder withPermissions(@NotNull PermissionSet permissions) {
-            this.botPermissions = permissions;
-            this.userPermissions = permissions;
+        public Builder withPermissions(@NotNull Permission... permissions) {
+            this.botPermissions = PermissionSet.of(permissions);
+            this.userPermissions = PermissionSet.of(permissions);
             return this;
         }
 

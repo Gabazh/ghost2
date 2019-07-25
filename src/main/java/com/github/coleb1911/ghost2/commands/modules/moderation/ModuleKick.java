@@ -6,7 +6,6 @@ import com.github.coleb1911.ghost2.commands.meta.ModuleInfo;
 import com.github.coleb1911.ghost2.commands.meta.ReflectiveAccess;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.util.Permission;
-import discord4j.core.object.util.PermissionSet;
 import discord4j.rest.http.client.ClientException;
 
 import javax.validation.constraints.NotNull;
@@ -16,8 +15,8 @@ public final class ModuleKick extends Module {
     public ModuleKick() {
         super(new ModuleInfo.Builder(ModuleKick.class)
                 .withName("kick")
-                .withDescription("Kick a desired user")
-                .withPermissions(PermissionSet.of(Permission.KICK_MEMBERS)));
+                .withDescription("Kicks a member")
+                .withPermissions(Permission.KICK_MEMBERS));
     }
 
     @Override

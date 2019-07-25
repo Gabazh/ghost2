@@ -8,7 +8,6 @@ import com.github.coleb1911.ghost2.database.entities.GuildMeta;
 import com.github.coleb1911.ghost2.database.repos.GuildMetaRepository;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.util.Permission;
-import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,8 +20,8 @@ public final class ModuleConfirm extends Module {
     public ModuleConfirm() {
         super(new ModuleInfo.Builder(ModuleConfirm.class)
                 .withName("confirm")
-                .withDescription("Gives you your default role")
-                .withBotPermissions(PermissionSet.of(Permission.MANAGE_ROLES)));
+                .withDescription("Gives you the guild's default role")
+                .withBotPermissions(Permission.MANAGE_ROLES));
     }
 
     @Override

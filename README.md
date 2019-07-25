@@ -5,9 +5,8 @@ ghost2 is a modular, multi-feature Discord bot, and the spiritual successor to t
 
 ## Documentation
 All the available documentation can be found in the [project wiki](https://github.com/cbryant02/ghost2/wiki). Here are some starter topics for end-users:
-
   - For help using the bot, refer to [*Using ghost2*](https://github.com/cbryant02/ghost2/wiki/Using-ghost2).
   - To run the bot, [download a release](https://github.com/cbryant02/ghost2/releases) and refer to [*Configuring and running*](https://github.com/cbryant02/ghost2/wiki/Configuring-and-running).
 
 ## Contributing
-Pull requests are totally welcome; ghost2 is passionately maintained entirely by me and one friend in our free time. If you want to help us out, see [CONTRIBUTING.md](https://github.com/cbryant02/ghost2/blob/master/CONTRIBUTING.md) and read the full [contributor's guide](https://github.com/cbryant02/ghost2/wiki/Contributor's-guide) for more information on getting your code into the project.
+Pull requests are always welcome. If you want to help out, see [CONTRIBUTING.md](https://github.com/cbryant02/ghost2/blob/master/CONTRIBUTING.md) and read the full [contributor's guide](https://github.com/cbryant02/ghost2/wiki/Contributor's-guide) for more information on getting your code into the project.

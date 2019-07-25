@@ -8,7 +8,6 @@ import com.github.coleb1911.ghost2.database.entities.GuildMeta;
 import com.github.coleb1911.ghost2.database.repos.GuildMetaRepository;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.util.Permission;
-import discord4j.core.object.util.PermissionSet;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
@@ -31,7 +30,7 @@ public final class ModuleAutoRole extends Module {
         super(new ModuleInfo.Builder(ModuleAutoRole.class)
                 .withName("autorole")
                 .withDescription("Configure automatic role assignment for this guild")
-                .withUserPermissions(PermissionSet.of(Permission.MANAGE_ROLES)));
+                .withUserPermissions(Permission.MANAGE_ROLES));
     }
 
     /**

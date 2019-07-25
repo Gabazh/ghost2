@@ -5,7 +5,6 @@ import com.github.coleb1911.ghost2.commands.meta.Module;
 import com.github.coleb1911.ghost2.commands.meta.ModuleInfo;
 import com.github.coleb1911.ghost2.commands.meta.ReflectiveAccess;
 import discord4j.core.object.util.Permission;
-import discord4j.core.object.util.PermissionSet;
 
 import javax.validation.constraints.NotNull;
 
@@ -15,7 +14,7 @@ public final class ModulePurge extends Module {
         super(new ModuleInfo.Builder(ModulePurge.class)
                 .withName("purge")
                 .withDescription("Clear messages from a channel")
-                .withPermissions(PermissionSet.of(Permission.MANAGE_MESSAGES))
+                .withPermissions(Permission.MANAGE_MESSAGES)
                 .withAliases("prune"));
     }
 

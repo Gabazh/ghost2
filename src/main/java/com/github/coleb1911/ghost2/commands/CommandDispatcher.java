@@ -11,12 +11,14 @@ import com.github.coleb1911.ghost2.database.repos.GuildMetaRepository;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
+import org.pmw.tinylog.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Processes {@link MessageCreateEvent}s from the main application class, and calls {@link Module#invoke invoke}
@@ -35,7 +37,7 @@ public final class CommandDispatcher {
     @ReflectiveAccess
     public CommandDispatcher() {
         // Initialize command registry and thread pool
-        executor = Executors.newCachedThreadPool();
+        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
     /**
@@ -119,5 +121,16 @@ public final class CommandDispatcher {
 
     public CommandRegistry getRegistry() {
         return registry;
+    }
+
+    public void shutdown() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(15L, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Logger.error("CommandDispatcher shutdown was interrupted");
+        }
     }
 }
