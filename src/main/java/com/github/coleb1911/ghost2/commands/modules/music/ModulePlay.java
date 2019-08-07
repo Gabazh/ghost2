@@ -5,9 +5,7 @@ import com.github.coleb1911.ghost2.commands.meta.CommandContext;
 import com.github.coleb1911.ghost2.commands.meta.Module;
 import com.github.coleb1911.ghost2.commands.meta.ModuleInfo;
 import com.github.coleb1911.ghost2.commands.meta.ReflectiveAccess;
-import com.github.coleb1911.ghost2.music.GuildAudioProvider;
 import com.github.coleb1911.ghost2.music.GuildAudioProviders;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import discord4j.core.object.util.Permission;
 
 import javax.validation.constraints.NotNull;
@@ -19,6 +17,7 @@ public final class ModulePlay extends Module {
     public ModulePlay() {
         super(new ModuleInfo.Builder(ModulePlay.class)
                 .withName("play")
+                .withAliases("queueadd", "q")
                 .withDescription("Play or queue a song.")
                 .withBotPermissions(Permission.CONNECT));
     }
@@ -26,7 +25,7 @@ public final class ModulePlay extends Module {
     @Override
     public void invoke(@NotNull CommandContext ctx) {
         // Check arguments
-        if (ctx.getArgs().size() < 1) {
+        if (ctx.getArgs().isEmpty()) {
             ctx.reply(REPLY_MISSING_SOURCE);
             return;
         }
@@ -37,11 +36,7 @@ public final class ModulePlay extends Module {
         }
 
         // Load track
-        try {
-            GuildAudioProvider provider = GuildAudioProviders.getOrCreate(ctx.getGuild(), ctx.getClient());
-            provider.addTrack(ctx.getArgs().get(0), status -> ctx.reply(status.getMessage()));
-        } catch (FriendlyException e) {
-            ctx.reply(e.getMessage());
-        }
+        GuildAudioProviders.getOrCreate(ctx.getGuild(), ctx.getClient())
+                .subscribe(provider -> provider.addTrack(ctx.getArgs().get(0), status -> ctx.reply(status.getMessage())));
     }
 }

@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.playback.NonAllocatingAudioFrameBuffer;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Guild;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,15 +33,15 @@ public class GuildAudioProviders {
         PROVIDERS.remove(guild);
     }
 
-    public static GuildAudioProvider getOrCreate(final Guild guild, final DiscordClient client) {
+    public static Mono<GuildAudioProvider> getOrCreate(final Guild guild, final DiscordClient client) {
         if (!PROVIDERS.containsKey(guild)) {
             PROVIDERS.put(guild, new GuildAudioProvider(PLAYER_MANAGER.createPlayer(), client, guild));
         }
-        return PROVIDERS.get(guild);
+        return Mono.just(PROVIDERS.get(guild));
     }
 
-    public static GuildAudioProvider getIfExists(final Guild guild) {
-        return PROVIDERS.get(guild);
+    public static Mono<GuildAudioProvider> getIfExists(final Guild guild) {
+        return Mono.justOrEmpty(PROVIDERS.get(guild));
     }
 
     public static void shutdown() {

@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,17 +54,31 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
 
         // Construct an instance of each Module
         for (Class<? extends Module> moduleClass : moduleClasses) {
-            try {
-                instances.add(createInstance(moduleClass));
-            } catch (InvalidModuleException e) {
-                Logger.error(e.getMessage());
-                invalidModules.add(moduleClass);
+            Module instance = createInstance(moduleClass);
+
+            // Check for name and/or alias overlaps
+            List<String> thisIds = collectIdentifiers(instance);
+            for (Module other : instances) {
+                if (!Collections.disjoint(thisIds, collectIdentifiers(other))) {
+                    Logger.error("Identifier overlap between {} and {}.",
+                            moduleClass.getSimpleName(),
+                            other.getClass().getSimpleName());
+                    System.exit(1);
+                }
             }
 
             // Warn if a Module class isn't final
             // See https://github.com/cbryant02/ghost2/wiki/Writing-a-command-module#notes-and-best-practices
             if (!Modifier.isFinal(moduleClass.getModifiers()))
                 Logger.warn("Module {} is not final. Add the final modifier and read the docs to understand why this is bad.", moduleClass.getSimpleName());
+
+            // Add instance to list
+            try {
+                instances.add(instance);
+            } catch (InvalidModuleException e) {
+                Logger.error(e.getMessage());
+                invalidModules.add(moduleClass);
+            }
         }
     }
 
@@ -71,7 +86,7 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
      * Gets a {@link Module} instance by name.
      *
      * @param name Command name
-     * @return Command instance, or null if no command with that name exists
+     * @return Command instance, or {@code null} if no command with that name exists
      */
     Module getCommandInstance(String name) {
         for (Module module : instances) {
@@ -86,6 +101,16 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
     }
 
     /**
+     * Gets a Set of invalid Module classes that CommandRegistry found.<br>
+     * Used for testing.
+     *
+     * @return Invalid Module classes found on classpath
+     */
+    Set<Class> getInvalidModules() {
+        return Set.copyOf(invalidModules);
+    }
+
+    /**
      * Get the {@link ModuleInfo} for a {@link Module} by name
      *
      * @param name Command name
@@ -93,12 +118,10 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
      * @see #getAllInfo()
      */
     public ModuleInfo getInfo(String name) {
-        for (Module module : instances) {
-            if (name.equals(module.getInfo().getName())) {
-                return module.getInfo();
-            }
-        }
-        return null;
+        return instances.stream()
+                .map(Module::getInfo)
+                .filter(info -> info.getName().equals(name))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -112,16 +135,6 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
                 .map(Module::getInfo)
                 .sorted(Comparator.comparing(ModuleInfo::getName))
                 .collect(Collectors.toUnmodifiableList());
-    }
-
-    /**
-     * Gets a Set of invalid Module classes that CommandRegistry found.<br>
-     * Used for testing.
-     *
-     * @return Invalid Module classes found on classpath
-     */
-    Set<Class> getInvalidModules() {
-        return Set.copyOf(invalidModules);
     }
 
     /**
@@ -146,10 +159,22 @@ public final class CommandRegistry implements ApplicationListener<ContextRefresh
     }
 
     /**
+     * Collects all names and aliases for a {@code Module}.
+     *
+     * @param instance {@code Module} instance
+     * @return List of all identifiers (name + aliases) for the {@code Module}
+     */
+    private List<String> collectIdentifiers(Module instance) {
+        List<String> aliases = new ArrayList<>(instance.getInfo().getAliases());
+        aliases.add(instance.getInfo().getName());
+        return List.copyOf(aliases);
+    }
+
+    /**
      * Listens for ApplicationContext refresh and gets a bean factory when it's available.<br>
      * The bean factory is stored privately and used to autowire Module instances in {@link #createInstance}.
      * <p>
-     * This method is for Spring only. Do not call it.
+     * Only for internal use by Spring.
      *
      * @param event ContextRefreshedEvent
      */

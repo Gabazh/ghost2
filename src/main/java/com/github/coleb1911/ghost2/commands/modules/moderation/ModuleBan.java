@@ -21,7 +21,7 @@ public final class ModuleBan extends Module {
     @Override
     public void invoke(@NotNull CommandContext ctx) {
         //Check for args
-        if (ctx.getArgs().size() < 1) {
+        if (ctx.getArgs().isEmpty()) {
             ctx.reply("Please specify a user.");
             return;
         }

@@ -8,11 +8,13 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Contains relevant information for when a command is invoked.
@@ -82,15 +84,19 @@ public class CommandContext {
         return roleMentions;
     }
 
-    public void reply(String message) {
-        channel.createMessage(message).subscribe();
+    public Message reply(final String text) {
+        return channel.createMessage(text).block();
     }
 
-    public void replyDirect(String message) {
-        invoker.getPrivateChannel().map(ch -> ch.createMessage(message).subscribe()).subscribe();
+    public Message replyEmbed(final Consumer<EmbedCreateSpec> embedConsumer) {
+        return channel.createEmbed(embedConsumer).block();
     }
 
-    private List<String> extractArgs(Message message) {
+    public Message replyDirect(final String text) {
+        return invoker.getPrivateChannel().map(ch -> ch.createMessage(text).block()).block();
+    }
+
+    private List<String> extractArgs(final Message message) {
         String content = message.getContent().orElse("");
         // Arrays.asList returns an immutable list implementation, so we need to wrap it in an actual ArrayList
         return new ArrayList<>(Arrays.asList(content.split("\\p{javaSpaceChar}")));

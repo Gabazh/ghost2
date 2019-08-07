@@ -10,15 +10,15 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
 
-public final class ModuleSkip extends Module {
-    private static final String REPLY_SKIPPED = "Skipped.";
-    private static final String REPLY_SKIPPED_END = "Skipped. End of queue.";
+public final class ModuleShuffle extends Module {
+    private static final String REPLY_SUCCESS = "Shuffled.";
+    private static final String REPLY_QUEUE_EMPTY = "Nothing to shuffle. Queue a song with `play`.";
 
     @ReflectiveAccess
-    public ModuleSkip() {
-        super(new ModuleInfo.Builder(ModuleSkip.class)
-                .withName("skip")
-                .withDescription("Skips the currently playing track."));
+    public ModuleShuffle() {
+        super(new ModuleInfo.Builder(ModuleShuffle.class)
+                .withName("shuffle")
+                .withDescription("Shuffle the songs currently in the queue"));
     }
 
     @Override
@@ -26,16 +26,9 @@ public final class ModuleSkip extends Module {
         GuildAudioProviders.getIfExists(ctx.getGuild())
                 .switchIfEmpty(Mono.fromRunnable(() -> ctx.reply(VoiceUtils.REPLY_NOT_PROVIDING)))
                 .subscribe(provider -> {
-                    if (provider.getQueue().isEmpty()) {
-                        ctx.reply(VoiceUtils.REPLY_EMPTY_QUEUE);
-                        return;
-                    }
-
-                    if (provider.skipTrack()) {
-                        ctx.reply(REPLY_SKIPPED);
-                    } else {
-                        ctx.reply(REPLY_SKIPPED_END);
-                    }
+                    if (provider.shuffle()) {
+                        ctx.reply(REPLY_SUCCESS);
+                    } else ctx.reply(REPLY_QUEUE_EMPTY);
                 });
     }
 }

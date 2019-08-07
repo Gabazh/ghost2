@@ -34,7 +34,7 @@ public final class ModuleHelp extends Module {
 
     @Override
     public void invoke(@NotNull final CommandContext ctx) {
-        if (ctx.getArgs().size() > 0) {
+        if (!ctx.getArgs().isEmpty()) {
             singleCommandHelp(ctx);
         } else {
             fullCommandList(ctx);

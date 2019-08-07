@@ -35,13 +35,13 @@ public final class ModuleAbout extends Module {
         Duration timeInServer = Duration.between(me.getJoinTime(), Instant.now());
         String timeFormatted = DurationFormatUtils.formatDuration(timeInServer.toMillis(), "dd 'days', HH 'hours', mm 'minutes'");
 
-        ctx.getChannel().createEmbed(embedCreateSpec -> embedCreateSpec
+        ctx.replyEmbed(embedCreateSpec -> embedCreateSpec
                 .setAuthor(me.getUsername(), "https://github.com/cbryant02/ghost2", me.getAvatarUrl())
                 .setTitle("About")
                 .setDescription(FLAVOR_TEXT)
                 .addField(FIELD_ID, me.getId().asString(), false)
                 .addField(FIELD_TAG, me.getUsername() + "#" + me.getDiscriminator(), false)
                 .addField(FIELD_SERVER_TIME, timeFormatted, false)
-                .setFooter(FOOTER, null)).subscribe();
+                .setFooter(FOOTER, null));
     }
 }

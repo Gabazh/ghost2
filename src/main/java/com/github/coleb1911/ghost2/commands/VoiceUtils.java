@@ -1,7 +1,6 @@
 package com.github.coleb1911.ghost2.commands;
 
 import com.github.coleb1911.ghost2.commands.meta.CommandContext;
-import com.github.coleb1911.ghost2.music.GuildAudioProvider;
 import com.github.coleb1911.ghost2.music.GuildAudioProviders;
 import discord4j.core.object.VoiceState;
 import discord4j.core.object.entity.Member;
@@ -9,12 +8,17 @@ import discord4j.core.object.entity.VoiceChannel;
 import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import discord4j.voice.VoiceConnection;
+import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VoiceUtils {
+    public static final String REPLY_NOT_PROVIDING = "I'm not playing any music.";
+    public static final String REPLY_EMPTY_QUEUE = "There's nothing in the queue.";
+
     private static final String REPLY_OCCUPIED = "I'm already in a voice channel.";
     private static final String REPLY_NO_VOICE_CHANNEL = "You're not in a voice channel.";
     private static final String REPLY_NO_CONNECT_PERM = "I can't connect to that channel.";
@@ -49,19 +53,29 @@ public class VoiceUtils {
 
         // Join channel
         channel.join(spec -> {
-            GuildAudioProvider provider = GuildAudioProviders.getOrCreate(ctx.getGuild(), ctx.getClient());
-            spec.setProvider(provider);
+            GuildAudioProviders.getOrCreate(ctx.getGuild(), ctx.getClient())
+                    .subscribe(spec::setProvider);
         }).doOnSuccess(connection -> CONNECTIONS.put(channel, connection)).subscribe();
     }
 
     public static void leave(CommandContext ctx) {
-        VoiceState selfState = ctx.getSelf().getVoiceState().block();
-        VoiceChannel channel;
-        if (selfState != null && (channel = selfState.getChannel().block()) != null) {
-            VoiceConnection conn = CONNECTIONS.get(channel);
-            if (conn != null) {
-                conn.disconnect();
-            }
+        if (memberIsInVoiceChannel(ctx.getSelf())) {
+            ctx.getSelf().getVoiceState()
+                    .map(VoiceState::getChannel).map(Mono::block)
+                    .subscribe(VoiceUtils::leaveChannel);
+        }
+    }
+
+    public static void leaveChannel(VoiceChannel channel) {
+        VoiceConnection conn = CONNECTIONS.get(channel);
+
+        // Dirty workaround for https://github.com/Discord4J/Discord4J/issues/536
+        if (conn != null) {
+            Mono.fromRunnable(conn::disconnect)
+                    .retryBackoff(5L, Duration.ofSeconds(1L))
+                    .doOnError(ignore -> {
+                    })
+                    .subscribe();
         }
     }
 }

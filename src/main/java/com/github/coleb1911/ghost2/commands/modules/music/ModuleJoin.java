@@ -16,7 +16,7 @@ public final class ModuleJoin extends Module {
     public ModuleJoin() {
         super(new ModuleInfo.Builder(ModuleJoin.class)
                 .withName("join")
-                .withDescription("Make ghost2 join your voice channel.")
+                .withDescription("Make ghost2 join your voice channel")
                 .withBotPermissions(Permission.CONNECT));
     }
 

@@ -37,7 +37,7 @@ public final class CommandDispatcher {
     @ReflectiveAccess
     public CommandDispatcher() {
         // Initialize command registry and thread pool
-        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executor = Executors.newCachedThreadPool();
     }
 
     /**
@@ -52,7 +52,7 @@ public final class CommandDispatcher {
         final CommandContext ctx = new CommandContext(ev);
 
         // Fetch prefix from database
-        // GuildMeta shouldn't be null, otherwise we wouldn't have received the event.
+        // GuildMeta shouldn't be null, unless the database de-syncs from Discord.
         // We still null-check to be safe and get rid of the warning.
         final GuildMeta meta = guildRepo.findById(ctx.getGuild().getId().asLong()).orElse(null);
         if (null == meta) {
@@ -71,23 +71,13 @@ public final class CommandDispatcher {
 
         // Get & null-check Module instance
         final Module module = registry.getCommandInstance(commandName);
-        if (null == module) {
-            return;
-        }
+        if (null == module) return;
 
         // Check user's permissions
-        PermissionSet invokerPerms = ctx.getInvoker().getBasePermissions().block();
-        if (null == invokerPerms) {
-            ctx.reply(Module.REPLY_GENERAL_ERROR);
+        PermissionSet invokerPerms = DiscordUtils.getPermissionsFor(ctx.getInvoker());
+        if (!checkPermissions(invokerPerms, module.getInfo().getUserPermissions())) {
+            ctx.reply(Module.REPLY_INSUFFICIENT_PERMISSIONS_USER);
             return;
-        }
-        if (!invokerPerms.contains(Permission.ADMINISTRATOR)) {
-            for (Permission required : module.getInfo().getUserPermissions()) {
-                if (!invokerPerms.contains(required)) {
-                    ctx.reply(Module.REPLY_INSUFFICIENT_PERMISSIONS_USER);
-                    return;
-                }
-            }
         }
 
         // Check user's ID if command is an operator command
@@ -101,18 +91,10 @@ public final class CommandDispatcher {
         }
 
         // Check bot's permissions
-        PermissionSet botPerms = ctx.getSelf().getBasePermissions().block();
-        if (null == botPerms) {
-            ctx.reply(Module.REPLY_GENERAL_ERROR);
+        PermissionSet botPerms = DiscordUtils.getPermissionsFor(ctx.getSelf());
+        if (!checkPermissions(botPerms, module.getInfo().getBotPermissions())) {
+            ctx.reply(Module.REPLY_INSUFFICIENT_PERMISSIONS_BOT);
             return;
-        }
-        if (!botPerms.contains(Permission.ADMINISTRATOR)) {
-            for (Permission required : module.getInfo().getBotPermissions()) {
-                if (!botPerms.contains(required)) {
-                    ctx.reply(Module.REPLY_INSUFFICIENT_PERMISSIONS_BOT);
-                    return;
-                }
-            }
         }
 
         // Finally kick off command thread if all checks are passed
@@ -130,7 +112,12 @@ public final class CommandDispatcher {
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            Logger.error("CommandDispatcher shutdown was interrupted");
+            Logger.error(e, "CommandDispatcher shutdown was interrupted");
+            Thread.currentThread().interrupt();
         }
+    }
+
+    private boolean checkPermissions(PermissionSet perms, PermissionSet required) {
+        return perms.contains(Permission.ADMINISTRATOR) || perms.containsAll(required);
     }
 }

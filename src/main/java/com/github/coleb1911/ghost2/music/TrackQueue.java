@@ -5,35 +5,53 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 class TrackQueue extends AudioEventAdapter {
+    private static final int QUEUE_MAX_SIZE = 50;
+
     private final AudioPlayer player;
     private final Queue<AudioTrack> queue;
 
     TrackQueue(final AudioPlayer player) {
         this.player = player;
-        this.queue = new LinkedBlockingQueue<>(50);
+        this.queue = new ConcurrentLinkedQueue<>();
     }
 
     TrackLoadCallback.Status add(AudioTrack track) {
-        if (player.startTrack(track, true)) {
-            return TrackLoadCallback.Status.PLAYING;
-        } else if (queue.offer(track)) {
-            return TrackLoadCallback.Status.QUEUED;
+        if (queue.size() < QUEUE_MAX_SIZE) {
+            if (player.startTrack(track, true)) {
+                return TrackLoadCallback.Status.PLAYING;
+            } else if (queue.offer(track)) {
+                return TrackLoadCallback.Status.QUEUED;
+            }
         }
         return TrackLoadCallback.Status.FAILED;
     }
 
     TrackLoadCallback.Status addAll(List<AudioTrack> tracks) {
-        for (AudioTrack track : tracks) {
-            if (!queue.offer(tracks.remove(0))) {
-                return TrackLoadCallback.Status.QUEUED_SOME;
+        while (!tracks.isEmpty()) {
+            if (add(tracks.remove(0)).equals(TrackLoadCallback.Status.FAILED)) {
+                return TrackLoadCallback.Status.QUEUED_SOME.with(queue.size());
             }
         }
-        return TrackLoadCallback.Status.QUEUED_ALL;
+        return TrackLoadCallback.Status.QUEUED_ALL.with(queue.size());
+    }
+
+    boolean shuffle() {
+        if (queue.isEmpty()) {
+            return false;
+        }
+
+        List<AudioTrack> tracks = Arrays.asList(queue.toArray(AudioTrack[]::new));
+        Collections.shuffle(tracks);
+        queue.clear();
+        queue.addAll(tracks);
+        return true;
     }
 
     boolean next() {
@@ -56,8 +74,8 @@ class TrackQueue extends AudioEventAdapter {
         return false;
     }
 
-    AudioTrack[] getTracks() {
-        return queue.toArray(AudioTrack[]::new);
+    List<AudioTrack> getTracks() {
+        return List.of(queue.toArray(AudioTrack[]::new));
     }
 
     void destroy() {

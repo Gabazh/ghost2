@@ -45,7 +45,7 @@ public final class ModuleDefine extends Module {
 
     @Override
     public void invoke(@NotNull final CommandContext ctx) {
-        if (ctx.getArgs().size() < 1) {
+        if (ctx.getArgs().isEmpty()) {
             ctx.getChannel().createMessage(REPLY_MISSING_WORD).block();
             return;
         }
@@ -64,7 +64,7 @@ public final class ModuleDefine extends Module {
         if (specConsumer == null) {
             ctx.reply("No definition found for " + word + ".");
         } else {
-            ctx.getChannel().createEmbed(specConsumer).block();
+            ctx.replyEmbed(specConsumer);
         }
     }
 

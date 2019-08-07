@@ -16,7 +16,8 @@ public final class ModuleLeave extends Module {
     public ModuleLeave() {
         super(new ModuleInfo.Builder(ModuleLeave.class)
                 .withName("leave")
-                .withDescription("Make ghost2 leave a voice channel."));
+                .withAliases("stop")
+                .withDescription("Clear the queue and leave the voice channel"));
     }
 
     @Override
