@@ -74,8 +74,8 @@ public class Ghost2Application implements ApplicationRunner {
     }
 
     /**
-     * Starts the application.<br>
-     * This should only be called by Spring Boot.
+     * i think this is way better 
+     * than this shit
      *
      * @param args Arguments passed to the application
      */
