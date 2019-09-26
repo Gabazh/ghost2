@@ -7,6 +7,10 @@ import org.aeonbits.owner.Mutable;
 import org.aeonbits.owner.Reloadable;
 
 @Sources("classpath:ghost.properties")
+/**
+*This is some better documentation
+aond some other btter stuff
+*/
 public interface GhostConfig extends Config, Accessible, Mutable, Reloadable {
     @Key("ghost.token")
     String token();
